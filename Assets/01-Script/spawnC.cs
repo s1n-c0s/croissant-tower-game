@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class spawnC : MonoBehaviour
 {
-    [SerializeField] private GameObject crosisant_prefab;
+    [SerializeField] private GameObject croissant_prefab;
 
     // Start is called before the first frame update
     void Start()
@@ -17,7 +17,7 @@ public class spawnC : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Lean.Pool.LeanPool.Spawn(crosisant_prefab, transform);
+            Lean.Pool.LeanPool.Spawn(croissant_prefab, transform.position + transform.forward, transform.rotation);
         }
     }
 }
