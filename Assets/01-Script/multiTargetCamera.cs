@@ -11,8 +11,8 @@ public class MultiTargetCamera : MonoBehaviour
     public Vector3 offset;
     public float smoothTime = 0.5f;
 
-    public float maxZoom = 40f;
-    public float minZoom = 10f;
+    public float maxFOV = 60f; // Maximum field of view
+    public float minFOV = 20f; // Minimum field of view
     public float zoomLimiter = 50f;
 
     public Collider2D cameraConfiner; // Define the 2D camera confiner
@@ -22,6 +22,7 @@ public class MultiTargetCamera : MonoBehaviour
     void Start()
     {
         cam = GetComponent<Camera>();
+        cam.orthographic = false; // Make sure the camera is set to perspective mode
     }
 
     void LateUpdate()
@@ -53,36 +54,26 @@ public class MultiTargetCamera : MonoBehaviour
     void Zoom()
     {
         float greatestDistance = GetGreatestDistance();
-        float requiredSize = GetRequiredSize(greatestDistance);
+        float requiredFOV = GetRequiredFOV(greatestDistance);
 
-        // Clamp the zoom value to ensure it fits within the confiner
-        float clampedSize = Mathf.Clamp(requiredSize, minZoom, maxZoom);
+        // Clamp the FOV value to ensure it fits within the confiner
+        float clampedFOV = Mathf.Clamp(requiredFOV, minFOV, maxFOV);
 
-        // Smoothly transition to the new zoom size
-        cam.orthographicSize = Mathf.Lerp(cam.orthographicSize, clampedSize, Time.deltaTime * smoothTime);
+        // Smoothly transition to the new FOV
+        cam.fieldOfView = Mathf.SmoothDamp(cam.fieldOfView, clampedFOV, ref velocity.z, smoothTime);
     }
 
-    float GetRequiredSize(float greatestDistance)
+    float GetRequiredFOV(float greatestDistance)
     {
-        if (cameraConfiner == null) return cam.orthographicSize;
+        if (cameraConfiner == null) return cam.fieldOfView;
 
-        // Determine the aspect ratio of the camera
-        float aspectRatio = cam.aspect;
+        // Determine the camera's distance to the center point
+        float cameraDistance = (GetCenterPoint() - transform.position).magnitude;
 
-        // Calculate the confiner bounds
-        Bounds confinerBounds = cameraConfiner.bounds;
-        float confinerWidth = confinerBounds.size.x;
-        float confinerHeight = confinerBounds.size.y;
+        // Calculate the required FOV to fit all targets
+        float requiredFOV = 2.0f * Mathf.Atan(greatestDistance / (2.0f * cameraDistance)) * Mathf.Rad2Deg;
 
-        // Calculate the required size to fit the targets within the confiner
-        float requiredSize = Mathf.Max(
-            greatestDistance / (2 * aspectRatio), // Width-based zoom
-            greatestDistance / 2                  // Height-based zoom
-        );
-
-        // Ensure the required size does not exceed the confiner's limits
-        float maxSize = Mathf.Min(confinerWidth / (2 * aspectRatio), confinerHeight / 2);
-        return Mathf.Min(requiredSize, maxSize);
+        return requiredFOV;
     }
 
     void Move()
