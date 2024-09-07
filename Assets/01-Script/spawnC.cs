@@ -17,7 +17,7 @@ public class spawnC : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            Lean.Pool.LeanPool.Spawn(croissant_prefab, transform.position + transform.forward, transform.rotation);
+            Lean.Pool.LeanPool.Spawn(croissant_prefab, transform.position, transform.rotation);
         }
     }
 }
